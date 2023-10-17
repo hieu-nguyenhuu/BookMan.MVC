@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Xml.Serialization;
 namespace BookMan.Mvc.Models
 {
@@ -50,6 +52,54 @@ namespace BookMan.Mvc.Models
         {
             var b = Get(id);
             return b != null && Books.Remove(b);
+        }
+        public string GetDataPath(string file) => $"Data\\{file}";
+        public void Upload(Book book, IFormFile file)
+        {
+            if (file != null)
+            {
+                var path = GetDataPath(file.FileName);
+                using var stream = new FileStream(path, FileMode.Create);
+                file.CopyTo(stream);
+                book.DataFile = file.FileName;
+            }
+        }
+        public (Stream, string) Download(Book b)
+        {
+            var memory = new MemoryStream();
+            using var stream = new FileStream(GetDataPath(b.DataFile), FileMode.Open);
+            stream.CopyTo(memory);
+            memory.Position = 0;
+            var type = Path.GetExtension(b.DataFile) switch
+            {
+                "pdf" => "application/pdf",
+                "docx" => "application/vnd.ms-word",
+                "doc" => "application/vnd.ms-word",
+                "txt" => "text/plain",
+                _ => "application/pdf"
+            };
+            return (memory, type);
+        }
+        public Book[] Get(string search)
+        {
+            var s = search != null ? search.ToLower() : "";
+            return Books.Where(b =>
+                b.Name.ToLower().Contains(s) ||
+                b.Authors.ToLower().Contains(s) ||
+                b.Publisher.ToLower().Contains(s) ||
+                b.Year.ToString() == s
+            ).ToArray();
+        }
+        public (Book[] books, int pages, int page) Paging(int page, string orderBy = "Name", bool dsc = false)
+        {
+            int size = 5;
+            int pages = (int)Math.Ceiling((double)Books.Count / size);
+            var books = Books.Skip((page - 1) * size)
+                             .Take(size)
+                             .AsQueryable()
+                             .OrderBy($"{orderBy} {(dsc ? "descending" : "")}")
+                             .ToArray();
+            return (books, pages, page);
         }
         public void SaveChanges()
         {

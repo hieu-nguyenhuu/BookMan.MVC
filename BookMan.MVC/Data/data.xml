@@ -7,6 +7,7 @@
     <Publisher>Moscow</Publisher>
     <Year>2023</Year>
     <Description>edited</Description>
+    <DataFile>4000 english words volume 1-ebook.pdf</DataFile>
   </Book>
   <Book>
     <Id>3</Id>
@@ -16,11 +17,11 @@
     <Year>2020</Year>
   </Book>
   <Book>
-    <Id>4</Id>
-    <Name>Programming ASP.NET Core MVC</Name>
-    <Authors>Clinton B.</Authors>
-    <Publisher>Washington</Publisher>
-    <Year>2020</Year>
+    <Id>8</Id>
+    <Name>Test MVC</Name>
+    <Authors>Hieu Nguyen Huu</Authors>
+    <Publisher>HN</Publisher>
+    <Year>2023</Year>
   </Book>
   <Book>
     <Id>5</Id>
@@ -35,5 +36,12 @@
     <Authors>Nguyen Huu Hieu</Authors>
     <Publisher>BKHN</Publisher>
     <Year>2024</Year>
+  </Book>
+  <Book>
+    <Id>7</Id>
+    <Name>MVC Example</Name>
+    <Authors>Hieu Nguyen Huu</Authors>
+    <Publisher>BKHN</Publisher>
+    <Year>2023</Year>
   </Book>
 </ArrayOfBook>

@@ -1,4 +1,5 @@
 ﻿using BookMan.Mvc.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 namespace BookMan.Mvc.Controllers
 {
@@ -9,9 +10,17 @@ namespace BookMan.Mvc.Controllers
         {
             _service = service;
         }
-        public IActionResult Index()
+        public IActionResult Index(int page = 1, string orderBy = "Name", bool dsc = false)
         {
-            return View(_service.Get());
+            var model = _service.Paging(page, orderBy, dsc);
+            ViewData["Pages"] = model.pages;
+            ViewData["Page"] = model.page;
+            ViewData["Name"] = false;
+            ViewData["Authors"] = false;
+            ViewData["Publisher"] = false;
+            ViewData["Year"] = false;
+            ViewData[orderBy] = !dsc;
+            return View(model.books);
         }
         public IActionResult Details(int id)
         {
@@ -39,22 +48,45 @@ namespace BookMan.Mvc.Controllers
             else return View(book);
         }
         [HttpPost]
-        public IActionResult Update(Book book)
+        public IActionResult Update(Book book, IFormFile file)
         {
-            _service.Update(book);
-            _service.SaveChanges();
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                _service.Upload(book, file);
+                _service.Update(book);
+                _service.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(book);
+        }
+        public IActionResult Read(int id)
+        {
+            var b = _service.Get(id);
+            if (b == null) return NotFound();
+            if (!System.IO.File.Exists(_service.GetDataPath(b.DataFile))) return NotFound();
+            var (stream, type) = _service.Download(b);
+            return File(stream, type, b.DataFile);
         }
         public IActionResult Create()
         {
             return View(_service.Create());
         }
         [HttpPost]
-        public IActionResult Create(Book book)
+        public IActionResult Create(Book book, IFormFile file)
         {
-            _service.Add(book);
-            _service.SaveChanges();
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                _service.Upload(book, file);
+                _service.Add(book);
+                _service.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(book);
+            
+        }
+        public IActionResult Search(string term)
+        {
+            return View("Index", _service.Get(term));
         }
     }
 }
